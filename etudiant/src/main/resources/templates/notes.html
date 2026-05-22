@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Relevé de Notes — SupNum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 8mm 10mm; }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy:   #0d1f4e;
+            --navy2:  #1a3a7a;
+            --accent: #2563eb;
+            --gold:   #b8952a;
+            --light:  #f0f4ff;
+            --border: #c8d5f0;
+            --text:   #0f172a;
+            --muted:  #475569;
+            --green:  #15803d;
+            --red:    #b91c1c;
+            --row-alt:#f8faff;
+        }
+
+        body {
+            font-family: 'DM Sans', 'Times New Roman', sans-serif;
+            background: #e8edf8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 0 40px;
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        /* ── CONTROLS BAR ── */
+        .controls {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(13, 31, 78, 0.96);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 20px;
+            border-radius: 8px;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.18); color: white; }
+
+        .btn-print {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+        }
+        .btn-print:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37,99,235,0.5);
+        }
+
+        /* ── PAGE ── */
+        .page {
+            background: white;
+            width: 95%;
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 28px auto 0;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.14);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Top color bar */
+        .page-topbar {
+            height: 6px;
+            background: linear-gradient(90deg, #0d1f4e 0%, #2563eb 50%, #b8952a 100%);
+        }
+
+        .page-inner {
+            padding: 14mm 16mm 12mm;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--navy);
+            margin-bottom: 18px;
+            gap: 10px;
+        }
+
+        .header-side {
+            width: 38%;
+            font-size: 9.5px;
+            line-height: 1.65;
+            color: var(--navy);
+            font-weight: 500;
+        }
+
+        .header-side.right { text-align: right; font-family: 'Times New Roman', serif; }
+
+        .header-center {
+            width: 24%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-center img {
+            width: 64px;
+            height: auto;
+        }
+
+        .header-center .header-seal {
+            font-size: 7.5px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--navy);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* ── DOC TITLE ── */
+        .doc-title {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .doc-title-label {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: var(--light);
+            border: 1px solid var(--border);
+            padding: 3px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        .doc-title h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .doc-title-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .doc-title-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .doc-title-divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--navy), var(--accent));
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        /* ── STUDENT INFO ── */
+        .student-card {
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--navy);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px 24px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 11px;
+        }
+
+        .info-key {
+            font-weight: 700;
+            color: var(--navy);
+            white-space: nowrap;
+            min-width: 90px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-val {
+            color: var(--text);
+            font-weight: 400;
+        }
+
+        /* ── TABLE ── */
+        .table-wrap {
+            width: 100%;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        thead tr:first-child th {
+            background: var(--navy);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 9px;
+            padding: 9px 6px;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        thead tr:last-child th {
+            background: var(--navy2);
+            color: rgba(255,255,255,0.85);
+            font-size: 9px;
+            padding: 7px 5px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        tbody td {
+            padding: 7px 6px;
+            border: 1px solid var(--border);
+            text-align: center;
+            color: var(--text);
+        }
+
+        tbody tr:nth-child(even) td { background: var(--row-alt); }
+
+        /* Module row */
+        .mod-row td {
+            background: #e8edf8 !important;
+            color: var(--navy);
+            font-weight: 700;
+            font-size: 10.5px;
+            border-top: 2px solid var(--border);
+        }
+
+        .mod-row td:first-child {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        /* Subject row */
+        .sub-row td:nth-child(2) {
+            text-align: left;
+            padding-left: 18px;
+            color: var(--muted);
+        }
+
+        .status-v { color: var(--green); font-weight: 700; font-size: 9px; }
+        .status-a { color: var(--red);   font-weight: 700; font-size: 9px; }
+
+        .note-dash { color: #cbd5e1; }
+
+        /* ── SUMMARY ── */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            font-size: 11.5px;
+        }
+
+        .sum-label {
+            background: var(--light);
+            color: var(--navy);
+            font-weight: 700;
+            padding: 10px 14px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sum-val {
+            padding: 10px 14px;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .sum-label:last-of-type,
+        .sum-val:last-of-type { border-bottom: none; }
+
+        /* ── DECISION ── */
+        .decision {
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .decision.validated {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            color: var(--green);
+        }
+
+        .decision.failed {
+            background: #fff1f2;
+            border: 2px solid #fecdd3;
+            color: var(--red);
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: var(--muted);
+            gap: 20px;
+        }
+
+        .sig-left { flex: 1; }
+        .sig-right { flex: 1; text-align: right; }
+
+        .sig-title {
+            font-weight: 700;
+            color: var(--navy);
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .sig-dots {
+            color: var(--border);
+            letter-spacing: 2px;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .sig-space {
+            height: 36px;
+            border-bottom: 1px dashed var(--border);
+            margin-top: 6px;
+            width: 80%;
+        }
+
+        .sig-right .sig-space { margin-left: auto; }
+
+        /* ── WATERMARK ── */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-family: 'Syne', sans-serif;
+            font-size: 72px;
+            font-weight: 800;
+            color: rgba(13,31,78,0.025);
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            letter-spacing: 8px;
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            body { background: white; padding: 0; }
+            .controls { display: none; }
+            .page {
+                box-shadow: none;
+                border-radius: 0;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+            }
+            .page-topbar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            thead tr:first-child th,
+            thead tr:last-child th,
+            .mod-row td,
+            .student-card,
+            .sum-label,
+            .decision { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 700px) {
+            .page-inner { padding: 12px 14px; }
+            .header { flex-direction: column; align-items: center; }
+            .header-side { width: 100%; text-align: center !important; }
+            .student-card { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .footer { flex-direction: column; }
+            .sig-right { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- CONTROLS -->
+<div class="controls">
+    <a th:href="@{/etudiant/dashboard/{id}(id=${etudiant.id})}" class="btn btn-back">← Retour au dashboard</a>
+    <button onclick="window.print()" class="btn btn-print">🖨 Imprimer / Exporter PDF</button>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+    <div class="page-topbar"></div>
+    <div class="watermark">SUPNUM</div>
+
+    <div class="page-inner">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-side">
+                REPUBLIQUE ISLAMIQUE DE MAURITANIE<br>
+                <strong>Ministère de l'Enseignement Supérieur</strong><br>
+                et de la Recherche Scientifique<br>
+                Institut Supérieur du Numérique — SupNum
+            </div>
+
+            <div class="header-center">
+                <img th:src="@{/images/logo.png}" alt="Logo SupNum">
+                <div class="header-seal">Portail Académique Officiel</div>
+            </div>
+
+            <div class="header-side right">
+                الجمهورية الإسلامية الموريتانية<br>
+                <strong>وزارة التعليم العالي</strong><br>
+                والبحث العلمي<br>
+                المعهد العالي للرقمنة — سوبنوم
+            </div>
+        </div>
+
+        <!-- TITLE -->
+        <div class="doc-title">
+            <div class="doc-title-label">Document Officiel</div>
+            <h1>Relevé de Notes</h1>
+            <div class="doc-title-meta">
+                <span>📅 Année Académique : <strong>2025 – 2026</strong></span>
+                <span>📋 Semestre : <strong th:text="${semestre}">—</strong></span>
+            </div>
+            <div class="doc-title-divider"></div>
+        </div>
+
+        <!-- STUDENT INFO -->
+        <div class="student-card">
+            <div class="info-row">
+                <span class="info-key">Nom &amp; Prénom</span>
+                <span class="info-val" th:text="${etudiant.prenom} + ' ' + ${etudiant.nom}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Matricule</span>
+                <span class="info-val" th:text="${etudiant.matricule}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Spécialité</span>
+                <span class="info-val" th:text="${etudiant.specialite}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Niveau</span>
+                <span class="info-val" th:text="${etudiant.niveau}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">NNI</span>
+                <span class="info-val" th:text="${etudiant.numeroNational}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-key">Email</span>
+                <span class="info-val" th:text="${etudiant.email}"></span>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div th:if="${errorMessage == null}" class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width:48px;">Code</th>
+                        <th rowspan="2" style="text-align:left; padding-left:10px;">Unités d'Enseignement</th>
+                        <th rowspan="2" style="width:44px;">Crédit</th>
+                        <th colspan="3">Sessions</th>
+                        <th rowspan="2" style="width:52px;">Moyenne</th>
+                        <th rowspan="2" style="width:60px;">Résultat</th>
+                    </tr>
+                    <tr>
+                        <th style="width:44px;">Devoir</th>
+                        <th style="width:48px;">Normale</th>
+                        <th style="width:44px;">Rattr.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="m : ${modules}">
+                        <tr class="mod-row">
+                            <td colspan="6" th:text="${m.nomModule}" style="text-align:left; padding-left:10px;"></td>
+                            <td th:text="${#numbers.formatDecimal(m.moyenneModule, 1, 2)}"></td>
+                            <td>
+                                <span th:class="${m.valide ? 'status-v' : 'status-a'}"
+                                      th:text="${m.valide ? '✔ VALIDÉ' : '✘ AJOURNÉ'}"></span>
+                            </td>
+                        </tr>
+                        <tr class="sub-row" th:each="n : ${m.elements}">
+                            <td th:text="${n.code}"></td>
+                            <td style="text-align:left; padding-left:18px;" th:text="${n.matiere}"></td>
+                            <td th:text="${n.credit}"></td>
+                            <td th:text="${n.noteDevoir != null ? #numbers.formatDecimal(n.noteDevoir, 1, 2) : '—'}"></td>
+                            <td th:text="${n.valeur    != null ? #numbers.formatDecimal(n.valeur,     1, 2) : '—'}"></td>
+                            <td th:text="${n.noteRattrapage != null ? #numbers.formatDecimal(n.noteRattrapage, 1, 2) : '—'}"></td>
+                            <td style="font-weight:600;" th:text="${#numbers.formatDecimal(n.maxNote, 1, 2)}"></td>
+                            <td>
+                                <span th:class="${n.maxNote >= 10 ? 'status-v' : 'status-a'}"
+                                      th:text="${n.maxNote >= 10 ? '✔ Validé' : '✘ Ajourné'}"></span>
+                            </td>
+                        </tr>
+                    </th:block>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SUMMARY -->
+        <div th:if="${errorMessage == null}" class="summary-grid">
+            <div class="sum-label">Total crédits capitalisés</div>
+            <div class="sum-val" th:text="${totalCredits} + ' / 30'"></div>
+            <div class="sum-label">Moyenne générale du semestre</div>
+            <div class="sum-val" th:text="${#numbers.formatDecimal(moyenne, 1, 2)}"></div>
+        </div>
+
+        <!-- DECISION -->
+        <div th:if="${errorMessage == null}"
+             th:class="${moyenne >= 10 ? 'decision validated' : 'decision failed'}">
+            DÉCISION DU JURY :
+            <span th:if="${moyenne >= 10}">✔ SEMESTRE VALIDÉ</span>
+            <span th:unless="${moyenne >= 10}">✘ SEMESTRE AJOURNÉ</span>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="sig-left">
+                <div class="sig-title">Observations</div>
+                <div class="sig-space"></div>
+                <span class="sig-dots">· · · · · · · · · · · · · · · · · · · · ·</span>
+            </div>
+            <div class="sig-right">
+                <div>Fait à Nouakchott, le <strong th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy')}"></strong></div>
+                <br>
+                <div class="sig-title">Le Directeur de l'ISN</div>
+                <div class="sig-space"></div>
+                <span style="font-size:9.5px; color:#94a3b8;">(Signature &amp; Cachet Officiel)</span>
+            </div>
+        </div>
+
+    </div><!-- /page-inner -->
+</div><!-- /page -->
+
+</body>
+</html>

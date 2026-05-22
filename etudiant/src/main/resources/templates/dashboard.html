@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Portail Etudiant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy:   #040d1c;
+            --card:   rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.08);
+            --accent: #3b82f6;
+            --gold:   #c9a96e;
+            --text:   #eef2ff;
+            --muted:  rgba(200,215,255,0.45);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--navy);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ── ANIMATED BACKGROUND ── */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 75% 55% at 10% 20%, #0b2154 0%, transparent 55%),
+                radial-gradient(ellipse 60% 70% at 90% 80%, #0c1a40 0%, transparent 50%),
+                radial-gradient(ellipse 50% 40% at 50% 50%, #060f25 0%, transparent 70%),
+                linear-gradient(170deg, #040c1e 0%, #020810 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: drift ease-in-out infinite;
+            pointer-events: none;
+        }
+        .orb1 {
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(20,70,180,0.13) 0%, transparent 70%);
+            top: -20%; left: -15%;
+            animation-duration: 26s;
+        }
+        .orb2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(80,40,180,0.10) 0%, transparent 70%);
+            bottom: -10%; right: -10%;
+            animation-duration: 20s; animation-delay: -10s;
+        }
+        .orb3 {
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, rgba(180,130,40,0.07) 0%, transparent 70%);
+            top: 40%; left: 60%;
+            animation-duration: 30s; animation-delay: -6s;
+        }
+        @keyframes drift {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50%       { transform: translateY(-50px) scale(1.06); }
+        }
+
+        /* Grid overlay */
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 64px 64px;
+        }
+
+        /* Particles */
+        .bg-particles { position: absolute; inset: 0; overflow: hidden; }
+        .p {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(160,200,255,0.55);
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0%   { transform: translateY(105vh); opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 0.4; }
+            100% { transform: translateY(-8vh) translateX(20px); opacity: 0; }
+        }
+
+        /* Diagonal accent line */
+        .bg-line {
+            position: absolute;
+            width: 1px;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, rgba(59,130,246,0.15), transparent);
+            top: 20%;
+            animation: lineFade 8s ease-in-out infinite;
+        }
+        .bg-line:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .bg-line:nth-child(2) { left: 50%; animation-delay: -3s; }
+        .bg-line:nth-child(3) { left: 80%; animation-delay: -6s; }
+        @keyframes lineFade {
+            0%, 100% { opacity: 0; }
+            50%       { opacity: 1; }
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 48px;
+            height: 66px;
+            background: rgba(4, 13, 28, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #2563eb, #6366f1);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            color: white;
+        }
+
+        .brand-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: 0.5px;
+        }
+
+        .brand-sep {
+            width: 1px; height: 18px;
+            background: var(--border);
+        }
+
+        .brand-tag {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 7px 16px 7px 8px;
+            border-radius: 30px;
+        }
+
+        .user-avatar {
+            width: 30px; height: 30px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: white;
+        }
+
+        .user-name {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239,68,68,0.08);
+            color: #fca5a5;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(239,68,68,0.2);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239,68,68,0.22);
+            border-color: rgba(239,68,68,0.4);
+            color: #ff8080;
+            transform: translateY(-1px);
+        }
+
+        /* ── MAIN ── */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 52px 24px 60px;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* ── WELCOME ── */
+        .welcome {
+            margin-bottom: 52px;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .welcome-eyebrow {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 3.5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+
+        .welcome h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 42px;
+            font-weight: 300;
+            line-height: 1.15;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .welcome h2 strong {
+            font-weight: 800;
+            background: linear-gradient(90deg, #fff 30%, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-divider {
+            width: 48px; height: 1px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            margin: 16px 0;
+        }
+
+        .welcome p {
+            font-size: 15px;
+            color: var(--muted);
+            max-width: 420px;
+            line-height: 1.7;
+        }
+
+        /* ── SECTION LABEL ── */
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+            animation: fadeUp 0.7s 0.1s both;
+        }
+
+        .section-label span {
+            width: 3px; height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .section-label h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* ── SEMESTER GRID ── */
+        .grid-semesters {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            animation: fadeUp 0.7s 0.15s both;
+        }
+
+        .semester-card {
+            background: var(--card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 32px 24px 28px;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .semester-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent 60%);
+            pointer-events: none;
+        }
+
+        /* top accent line per card */
+        .semester-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .semester-card:nth-child(1)::after { background: linear-gradient(90deg, #3b82f6, #6366f1); }
+        .semester-card:nth-child(2)::after { background: linear-gradient(90deg, #10b981, #06b6d4); }
+        .semester-card:nth-child(3)::after { background: linear-gradient(90deg, #f59e0b, #f97316); }
+        .semester-card:nth-child(4)::after { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+        .semester-card:nth-child(5)::after { background: linear-gradient(90deg, #ef4444, #f97316); }
+        .semester-card:nth-child(6)::after { background: linear-gradient(90deg, #c9a96e, #f0d080); }
+
+        .semester-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.18);
+            box-shadow: 0 24px 50px rgba(0,0,0,0.4);
+        }
+
+        .semester-card:hover::after { opacity: 1; }
+
+        .sem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .sem-number {
+            font-family: 'Syne', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .sem-icon-wrap {
+            width: 46px; height: 46px;
+            border-radius: 13px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        .semester-card:hover .sem-icon-wrap {
+            transform: scale(1.15) rotate(6deg);
+            background: rgba(255,255,255,0.12);
+        }
+
+        .sem-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .sem-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .sem-arrow {
+            margin-top: 22px;
+            font-size: 18px;
+            color: var(--muted);
+            transition: all 0.3s;
+        }
+
+        .semester-card:hover .sem-arrow {
+            color: var(--text);
+            transform: translateX(4px);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .grid-semesters { grid-template-columns: repeat(2, 1fr); }
+            .navbar { padding: 0 20px; }
+            .welcome h2 { font-size: 30px; }
+        }
+
+        @media (max-width: 600px) {
+            .grid-semesters { grid-template-columns: 1fr; }
+            .brand-sep, .brand-tag { display: none; }
+            .container { padding: 36px 16px 48px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── BACKGROUND ── -->
+<div class="bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-line"></div>
+    <div class="bg-line"></div>
+    <div class="bg-line"></div>
+    <div class="bg-particles" id="particles"></div>
+</div>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <div class="brand">
+        <div class="brand-icon">S</div>
+        <span class="brand-name">SupNum</span>
+        <div class="brand-sep"></div>
+        <span class="brand-tag">Portail Étudiant</span>
+    </div>
+    <div class="nav-right">
+        <div class="user-pill">
+            <div class="user-avatar" th:text="${#strings.substring(etudiant.prenom,0,1)}">E</div>
+            <span class="user-name" th:text="${etudiant.prenom} + ' ' + ${etudiant.nom}">Étudiant</span>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-btn">
+                <span>🚪</span> Déconnexion
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- ── CONTENT ── -->
+<div class="container">
+
+    <div class="welcome">
+        <div class="welcome-eyebrow">Portail Académique — SupNum</div>
+        <h2>Bienvenue,<br><strong th:text="${etudiant.prenom} + ' ' + ${etudiant.nom}">Étudiant</strong></h2>
+        <div class="welcome-divider"></div>
+        <p>Consultez vos relevés de notes officiels. Sélectionnez un semestre pour accéder à vos résultats.</p>
+    </div>
+
+    <div class="section-label">
+        <span></span>
+        <h3>Relevés par semestre</h3>
+    </div>
+
+    <div class="grid-semesters">
+
+        <a th:href="@{/etudiant/notes/{id}?semestre=1(id=${etudiant.id})}" class="semester-card">
+            <div class="sem-header">
+                <span class="sem-number">S — 01</span>
+                <div class="sem-icon-wrap">📘</div>
+            </div>
+            <div class="sem-title">Semestre 1</div>
+            <div class="sem-desc">Fondamentaux et base</div>
+            <div class="sem-arrow">→</div>
+        </a>
+
+        <a th:href="@{/etudiant/notes/{id}?semestre=2(id=${etudiant.id})}" class="semester-card">
+            <div class="sem-header">
+                <span class="sem-number">S — 02</span>
+                <div class="sem-icon-wrap">📗</div>
+            </div>
+            <div class="sem-title">Semestre 2</div>
+            <div class="sem-desc">Approfondissement L1</div>
+            <div class="sem-arrow">→</div>
+        </a>
+
+        <a th:href="@{/etudiant/notes/{id}?semestre=3(id=${etudiant.id})}" class="semester-card">
+            <div class="sem-header">
+                <span class="sem-number">S — 03</span>
+                <div class="sem-icon-wrap">📙</div>
+            </div>
+            <div class="sem-title">Semestre 3</div>
+            <div class="sem-desc">Spécialisation initiale</div>
+            <div class="sem-arrow">→</div>
+        </a>
+
+        <a th:href="@{/etudiant/notes/{id}?semestre=4(id=${etudiant.id})}" class="semester-card">
+            <div class="sem-header">
+                <span class="sem-number">S — 04</span>
+                <div class="sem-icon-wrap">📒</div>
+            </div>
+            <div class="sem-title">Semestre 4</div>
+            <div class="sem-desc">Avancé et projets L2</div>
+            <div class="sem-arrow">→</div>
+        </a>
+
+        <a th:href="@{/etudiant/notes/{id}?semestre=5(id=${etudiant.id})}" class="semester-card">
+            <div class="sem-header">
+                <span class="sem-number">S — 05</span>
+                <div class="sem-icon-wrap">📕</div>
+            </div>
+            <div class="sem-title">Semestre 5</div>
+            <div class="sem-desc">Expertise professionnelle</div>
+            <div class="sem-arrow">→</div>
+        </a>
+
+        <a th:href="@{/etudiant/notes/{id}?semestre=6(id=${etudiant.id})}" class="semester-card">
+            <div class="sem-header">
+                <span class="sem-number">S — 06</span>
+                <div class="sem-icon-wrap">🎓</div>
+            </div>
+            <div class="sem-title">Semestre 6</div>
+            <div class="sem-desc">Stage et PFE L3</div>
+            <div class="sem-arrow">→</div>
+        </a>
+
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 45; i++) {
+        const p = document.createElement('div');
+        p.className = 'p';
+        const size = Math.random() < 0.25 ? 3 : 2;
+        p.style.cssText = `
+            left: ${Math.random() * 100}%;
+            width: ${size}px; height: ${size}px;
+            opacity: ${0.2 + Math.random() * 0.5};
+            animation-duration: ${14 + Math.random() * 22}s;
+            animation-delay: -${Math.random() * 25}s;
+        `;
+        container.appendChild(p);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion Étudiant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background: #f8fafc; color: #0f172a; min-height: 100vh; padding: 40px 20px; }
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        /* BACK BUTTON & HEADER */
+        .top-nav { margin-bottom: 30px; display: flex; align-items: center; gap: 20px; }
+        .btn-back { 
+            background: white; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 12px; 
+            text-decoration: none; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+        .btn-back:hover { background: #f1f5f9; color: #0f172a; transform: translateX(-5px); }
+
+        .profile-header {
+            background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0;
+            display: flex; align-items: center; gap: 25px; margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .avatar {
+            width: 80px; height: 80px; background: #0f172a; color: white; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800;
+        }
+        .profile-info h1 { font-size: 28px; font-weight: 800; margin-bottom: 5px; }
+        .profile-info .badges { display: flex; gap: 10px; }
+        .badge { padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .badge-level { background: #dcfce7; color: #15803d; }
+        .badge-spec { background: #e0f2fe; color: #0369a1; }
+
+        /* ACTION CARD */
+        .action-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white; padding: 30px; border-radius: 24px; margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center; gap: 20px;
+        }
+        .action-text h3 { font-size: 20px; margin-bottom: 5px; }
+        .action-text p { color: #94a3b8; font-size: 14px; }
+        .generate-form { display: flex; gap: 12px; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .generate-form select { background: transparent; color: white; border: none; padding: 0 15px; font-weight: 600; outline: none; cursor: pointer; min-width: 140px; }
+        .generate-form select option { background: #0f172a; color: white; }
+        .btn-generate { 
+            background: #38bdf8; color: #0f172a; padding: 12px 24px; border: none; border-radius: 12px; 
+            font-weight: 800; cursor: pointer; transition: 0.3s;
+        }
+        .btn-generate:hover { background: #7dd3fc; transform: scale(1.02); }
+
+        /* TABLE SECTION */
+        .table-container { background: white; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; }
+        .table-header { padding: 25px 30px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .table-header h2 { font-size: 20px; font-weight: 800; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 15px 20px; text-align: left; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 18px 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: middle; }
+        
+        .ue-column { font-weight: 700; color: #0f172a; display: flex; flex-direction: column; gap: 2px; }
+        .ue-label { font-size: 11px; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px; }
+        
+        .note-input { 
+            width: 85px; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8fafc; 
+            text-align: center; font-weight: 700; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .note-input:focus { border-color: #38bdf8; background: white; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1); }
+        .note-input::placeholder { color: #cbd5e1; }
+
+        .btn-save { 
+            background: #0f172a; color: white; padding: 10px 18px; border-radius: 10px; border: none; 
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+        .btn-save:hover { background: #38bdf8; color: #0f172a; }
+        .btn-delete { color: #f87171; background: #fef2f2; padding: 10px; border-radius: 10px; border: 1px solid #fee2e2; cursor: pointer; transition: 0.2s; }
+        .btn-delete:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+        .empty-state { padding: 80px; text-align: center; color: #94a3b8; }
+        .empty-icon { font-size: 48px; margin-bottom: 20px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <a href="/admin/dashboard" class="btn-back">⬅️ Retour au Dashboard</a>
+        </nav>
+
+        <header class="profile-header">
+            <div class="avatar" th:text="${#strings.substring(etudiant.prenom,0,1) + #strings.substring(etudiant.nom,0,1)}">JD</div>
+            <div class="profile-info">
+                <h1 th:text="${etudiant.prenom} + ' ' + ${etudiant.nom}">John Doe</h1>
+                <div class="badges">
+                    <span class="badge badge-level" th:text="${etudiant.niveau}">L1</span>
+                    <span class="badge badge-spec" th:text="${etudiant.specialite}">Dév Web</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="action-card">
+            <div class="action-text">
+                <h3>✨ Génération Automatique</h3>
+                <p>Créer instantanément la structure des notes pour le semestre choisi.</p>
+            </div>
+            <form th:action="@{/admin/note/generate/{id}(id=${etudiant.id})}" method="post" class="generate-form">
+                <select name="semestre">
+                    <option value="1">Semestre 1</option>
+                    <option value="2">Semestre 2</option>
+                    <option value="3">Semestre 3</option>
+                    <option value="4">Semestre 4</option>
+                    <option value="5">Semestre 5</option>
+                    <option value="6">Semestre 6</option>
+                </select>
+                <button type="submit" class="btn-generate">Générer la maquette</button>
+            </form>
+        </section>
+
+        <div th:each="entry : ${groupedNotes}" style="margin-bottom: 50px;">
+            <div class="table-container">
+                <div class="table-header" style="background: #f1f5f9;">
+                    <h2 th:text="'📚 Relevé de Notes - Semestre ' + ${entry.key}">Semestre 1</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module & Matière</th>
+                            <th>Crédit</th>
+                            <th style="text-align: center;">Devoir</th>
+                            <th style="text-align: center;">Examen</th>
+                            <th style="text-align: center;">Rattrap.</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="n : ${entry.value}">
+                            <td>
+                                <div class="ue-column">
+                                    <span class="ue-label" th:text="${n.code} + ' • ' + ${n.module}">UE CODE</span>
+                                    <span th:text="${n.matiere}">Nom de la matière</span>
+                                </div>
+                            </td>
+                            <td><span style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 700;" th:text="${n.credit}">3</span></td>
+                            
+                            <td style="text-align: center;">
+                                <input type="number" step="0.01" name="noteDevoir" th:value="${n.noteDevoir}" th:form="'form_' + ${n.id}" class="note-input" placeholder="-">
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="number" step="0.01" name="valeur" th:value="${n.valeur}" th:form="'form_' + ${n.id}" class="note-input" placeholder="-">
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="number" step="0.01" name="noteRattrapage" th:value="${n.noteRattrapage}" th:form="'form_' + ${n.id}" class="note-input" placeholder="-">
+                            </td>
+                            
+                            <td style="text-align: right;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    <form th:id="'form_' + ${n.id}" th:action="@{/admin/note/update/{noteId}(noteId=${n.id})}" method="post">
+                                        <input type="hidden" name="etudiantId" th:value="${etudiant.id}" />
+                                        <button type="submit" class="btn-save">💾 Sauver</button>
+                                    </form>
+                                    <form th:action="@{/admin/note/delete/{noteId}(noteId=${n.id})}" method="post">
+                                        <input type="hidden" name="etudiantId" th:value="${etudiant.id}" />
+                                        <button type="submit" class="btn-delete" title="Supprimer">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div th:if="${#maps.isEmpty(groupedNotes)}" class="empty-state">
+            <span class="empty-icon">📁</span>
+            <p>Aucune note enregistrée. Utilisez le bouton "Générer" pour commencer.</p>
+        </div>
+    </div>
+</body>
+</body>
+</html>

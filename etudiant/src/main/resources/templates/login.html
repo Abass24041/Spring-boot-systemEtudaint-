@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - SupNum Portail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #050d1a;
+            --card-bg: rgba(8, 18, 40, 0.75);
+            --border-subtle: rgba(255,255,255,0.07);
+            --border-glow: rgba(100,160,255,0.2);
+            --gold: #c9a96e;
+            --gold-light: #e8c98a;
+            --blue: #4a90e2;
+            --text: #eef2ff;
+            --muted: rgba(180,200,255,0.5);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ─── ANIMATED BACKGROUND ─── */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 70% 60% at 15% 35%, #0a1f50 0%, transparent 60%),
+                radial-gradient(ellipse 60% 70% at 85% 70%, #0c1a40 0%, transparent 55%),
+                linear-gradient(160deg, #040c1e 0%, #020810 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            animation: float ease-in-out infinite;
+        }
+        .orb1 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(25,75,180,0.15) 0%, transparent 70%);
+            top: -20%; left: -10%;
+            animation-duration: 22s;
+        }
+        .orb2 {
+            width: 450px; height: 450px;
+            background: radial-gradient(circle, rgba(90,50,200,0.12) 0%, transparent 70%);
+            bottom: -10%; right: -5%;
+            animation-duration: 18s; animation-delay: -9s;
+        }
+        .orb3 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(180,130,40,0.08) 0%, transparent 70%);
+            top: 50%; left: 55%;
+            animation-duration: 25s; animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50%       { transform: translateY(-40px) scale(1.05); }
+        }
+
+        /* Grid lines overlay */
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Animated particles */
+        .particles {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: rgba(180,210,255,0.6);
+            border-radius: 50%;
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.5; }
+            100% { transform: translateY(-10vh) translateX(30px); opacity: 0; }
+        }
+
+        /* ─── LAYOUT ─── */
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            width: min(95vw, 960px);
+            height: min(90vh, 620px);
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+            animation: appear 0.8s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(24px) scale(0.98); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        /* ─── LEFT PANEL ─── */
+        .left {
+            flex: 1.1;
+            background: rgba(5, 15, 35, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 40px;
+            border-right: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-deco {
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            border: 1px solid rgba(200,170,80,0.08);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 40s linear infinite;
+        }
+        .left-deco::before {
+            content: '';
+            position: absolute;
+            inset: 30px;
+            border-radius: 50%;
+            border: 1px solid rgba(200,170,80,0.05);
+        }
+        .left-deco::after {
+            content: '';
+            position: absolute;
+            inset: 70px;
+            border-radius: 50%;
+            border: 1px solid rgba(200,170,80,0.04);
+        }
+        @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+        .left-tag {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 24px;
+            opacity: 0.85;
+        }
+
+        .left-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px;
+            font-weight: 300;
+            color: var(--text);
+            line-height: 1.1;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .left-title span {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        .left-sub {
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+            max-width: 260px;
+        }
+
+        .left-divider {
+            width: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 22px auto;
+        }
+
+        .left-badge {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 7px 16px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+        .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 6px #4ade80;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ─── RIGHT PANEL ─── */
+        .right {
+            flex: 0.9;
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 40px;
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .logo-wrap {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo-wrap img {
+            width: 72px;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 8px 30px rgba(0,0,0,0.4);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .logo-wrap img:hover { transform: scale(1.08) rotate(4deg); }
+
+        .form-heading {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px;
+            font-weight: 400;
+            color: var(--text);
+            text-align: center;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .form-sub {
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 32px;
+            letter-spacing: 0.5px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .field label {
+            display: block;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 13px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: all 0.25s;
+        }
+        .field input::placeholder { color: rgba(180,200,255,0.3); }
+        .field input:focus {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--border-glow);
+            box-shadow: 0 0 0 3px rgba(74,144,226,0.1);
+        }
+
+        .pw-wrap { position: relative; }
+		.eye-btn {
+		    position: absolute;
+		    right: 14px;
+		    top: 50%; transform: translateY(-50%);
+		    cursor: pointer;
+		    color: rgb(0, 0, 0);
+		    display: flex;
+		    transition: color 0.2s;
+		}
+		.eye-btn:hover { color: rgb(0, 0, 0); }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #1a3a7a 0%, #2d5bbf 50%, #1e4db7 100%);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.35s;
+            box-shadow: 0 8px 24px rgba(30,77,183,0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(30,77,183,0.5);
+        }
+        .btn-submit:hover::before { opacity: 1; }
+        .btn-submit:active { transform: translateY(0); }
+
+        .error-msg {
+            background: rgba(200,40,40,0.15);
+            border: 1px solid rgba(200,40,40,0.3);
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 760px) {
+            .wrapper { flex-direction: column; height: auto; min-height: 100vh; border-radius: 0; }
+            .left { display: none; }
+            .right { flex: 1; padding: 50px 28px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="grid-lines"></div>
+    <div class="particles" id="particles"></div>
+</div>
+
+<!-- Main layout -->
+<div class="wrapper">
+
+    <!-- LEFT -->
+    <div class="left">
+        <div class="left-deco"></div>
+        <div class="left-tag">Portail Académique</div>
+        <h1 class="left-title">SupNum<br><span>Étudiant</span></h1>
+        <div class="left-divider"></div>
+        <p class="left-sub">Accédez à votre espace personnel pour gérer vos cours, notes et documents académiques.</p>
+        <div class="left-divider"></div>
+        <div class="left-badge">
+            <span class="dot"></span>
+            Système en ligne
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+        <div class="form-box">
+
+            <div class="logo-wrap">
+                <img th:src="@{/images/logo.png}" alt="Logo SupNum">
+            </div>
+
+            <h2 class="form-heading">Connexion</h2>
+            <p class="form-sub">Entrez vos identifiants pour continuer</p>
+
+            <div th:if="${param.error}" class="error-msg">
+                Email ou mot de passe incorrect.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="field">
+                    <label>Email</label>
+                    <input type="text" name="username" placeholder="votre@email.com" required autofocus>
+                </div>
+
+                <div class="field">
+                    <label>Mot de passe</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="password" name="password" placeholder="••••••••" required>
+                        <span class="eye-btn" id="togglePw">
+                            <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">S'identifier</button>
+            </form>
+
+            <p class="form-footer">© 2026 SupNum — Tous droits réservés</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password toggle
+    const pw = document.getElementById('password');
+    const togglePw = document.getElementById('togglePw');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    const eyeOn  = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    const eyeOff = `<line x1="1" y1="1" x2="23" y2="23"/><path d="M10.58 10.58A2 2 0 0 0 12 16a2 2 0 0 0 1.42-3.42M9.88 9.88A3 3 0 0 0 12 15"/><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a18.1 18.1 0 0 1 5-5.94M9.9 4.24A10 10 0 0 1 12 4c7 0 11 8 11 8a18.08 18.08 0 0 1-2.16 3.19"/>`;
+
+    togglePw.addEventListener('click', () => {
+        const hidden = pw.type === 'password';
+        pw.type = hidden ? 'text' : 'password';
+        eyeIcon.innerHTML = hidden ? eyeOff : eyeOn;
+    });
+
+    // Particles
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `
+            left: ${Math.random() * 100}%;
+            width: ${Math.random() < 0.3 ? 3 : 2}px;
+            height: ${Math.random() < 0.3 ? 3 : 2}px;
+            opacity: ${0.3 + Math.random() * 0.5};
+            animation-duration: ${12 + Math.random() * 20}s;
+            animation-delay: ${-Math.random() * 20}s;
+        `;
+        container.appendChild(p);
+    }
+</script>
+</body>
+</html>

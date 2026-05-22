@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier Étudiant — SupNum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy:   #07101f;
+            --accent: #3b82f6;
+            --bg:     #f4f6fb;
+            --card:   #ffffff;
+            --border: #e8edf5;
+            --text:   #0f172a;
+            --muted:  #64748b;
+            --radius: 14px;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 0 60px;
+            color: var(--text);
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            width: 100%;
+            background: var(--navy);
+            padding: 0 40px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 30px; height: 30px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 13px;
+            color: white;
+        }
+
+        .brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: white;
+        }
+
+        .topbar-back {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+
+        .topbar-back:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* ── WRAPPER ── */
+        .wrapper {
+            width: 100%;
+            max-width: 780px;
+            padding: 0 20px;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .page-header-icon {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .page-header-text h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .page-header-text p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-section {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-section:last-child { border-bottom: none; }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .section-label span {
+            width: 3px; height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .section-label h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* ── FORM GRID ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-grid.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field label {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .field select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 38px;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        /* ── ACTIONS ── */
+        .card-actions {
+            padding: 20px 28px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-cancel {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg);
+            color: var(--text);
+            border-color: #cbd5e1;
+        }
+
+        .btn-save {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            border: none;
+            background: var(--navy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(7,16,31,0.2);
+        }
+
+        .btn-save:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(7,16,31,0.3);
+        }
+
+        .btn-save:active { transform: none; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            .topbar { padding: 0 16px; }
+            .form-grid,
+            .form-grid.cols-3 { grid-template-columns: 1fr; }
+            .card-section { padding: 20px 18px; }
+            .card-actions { flex-direction: column-reverse; }
+            .btn-save, .btn-cancel { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <div class="brand-icon">S</div>
+        <span class="brand-name">SupNum</span>
+    </div>
+    <a th:href="@{/admin/dashboard}" class="topbar-back">← Retour au dashboard</a>
+</div>
+
+<div class="wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-header-icon">✏️</div>
+        <div class="page-header-text">
+            <h1>Modifier l'étudiant</h1>
+            <p>Mettez à jour les informations de l'étudiant ci-dessous.</p>
+        </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="card">
+        <form th:action="@{/admin/etudiant/edit/{id}(id=${etudiant.id})}" th:object="${etudiant}" method="post">
+
+            <!-- SECTION 1: Identity -->
+            <div class="card-section">
+                <div class="section-label">
+                    <span></span>
+                    <h3>Identité</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Nom</label>
+                        <input type="text" th:field="*{nom}" required>
+                    </div>
+                    <div class="field">
+                        <label>Prénom</label>
+                        <input type="text" th:field="*{prenom}" required>
+                    </div>
+                    <div class="field">
+                        <label>Matricule</label>
+                        <input type="text" th:field="*{matricule}" required>
+                    </div>
+                    <div class="field">
+                        <label>NNI</label>
+                        <input type="text" th:field="*{numeroNational}" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Contact -->
+            <div class="card-section">
+                <div class="section-label">
+                    <span></span>
+                    <h3>Contact</h3>
+                </div>
+                <div class="form-grid" style="grid-template-columns: 1fr;">
+                    <div class="field">
+                        <label>Email institutionnel</label>
+                        <input type="email" th:field="*{email}" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: Academic -->
+            <div class="card-section">
+                <div class="section-label">
+                    <span></span>
+                    <h3>Cursus académique</h3>
+                </div>
+                <div class="form-grid cols-3">
+                    <div class="field">
+                        <label>Spécialité</label>
+                        <select th:field="*{specialite}">
+                            <option value="Réseaux, Systèmes et Sécurité">Réseaux &amp; Sécurité</option>
+                            <option value="Développement Web et Mobile">Développement Web</option>
+                            <option value="Data Science">Data Science</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Niveau</label>
+                        <select th:field="*{niveau}">
+                            <option value="L1">L1</option>
+                            <option value="L2">L2</option>
+                            <option value="L3">L3</option>
+                            <option value="M1">M1</option>
+                            <option value="M2">M2</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Rôle</label>
+                        <select th:field="*{role}">
+                            <option value="USER">Étudiant</option>
+                            <option value="ADMIN">Administrateur</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="card-actions">
+                <a th:href="@{/admin/dashboard}" class="btn-cancel">✕ Annuler</a>
+                <button type="submit" class="btn-save">💾 Enregistrer les modifications</button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

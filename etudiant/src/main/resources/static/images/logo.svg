@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="SupNum">
+  <circle cx="60" cy="60" r="58" fill="#0d1f4e"/>
+  <circle cx="60" cy="60" r="46" fill="#2563eb"/>
+  <text x="60" y="70" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">SN</text>
+</svg>

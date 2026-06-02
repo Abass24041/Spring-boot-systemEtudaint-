@@ -23,7 +23,7 @@ public class AuthController {
                 if ("ADMIN".equals(etudiant.get().getRole())) {
                     return "redirect:/admin/dashboard";
                 }
-                return "redirect:/etudiant/dashboard/" + etudiant.get().getId();
+                return "redirect:/etudiant/dashboard";
             }
         }
         return "redirect:/login";

@@ -29,10 +29,21 @@ public class EtudiantApplication {
 				admin.setPassword(passwordEncoder.encode("admin123"));
 				admin.setRole("ADMIN");
 				etudiantRepository.save(admin);
-			} else {
-				Etudiant admin = adminOpt.get();
-				admin.setPassword(passwordEncoder.encode("admin123"));
-				etudiantRepository.save(admin);
+			}
+
+			Optional<Etudiant> demoOpt = etudiantRepository.findFirstByEmail("etudiant@supnum.mr");
+			if (demoOpt.isEmpty()) {
+				Etudiant demo = new Etudiant();
+				demo.setNom("Diallo");
+				demo.setPrenom("Aminata");
+				demo.setEmail("etudiant@supnum.mr");
+				demo.setMatricule("SN2026001");
+				demo.setNumeroNational("1234567890");
+				demo.setPassword(passwordEncoder.encode("1234567890"));
+				demo.setRole("USER");
+				demo.setSpecialite("Développement Web");
+				demo.setNiveau("L3");
+				etudiantRepository.save(demo);
 			}
 		};
 	}

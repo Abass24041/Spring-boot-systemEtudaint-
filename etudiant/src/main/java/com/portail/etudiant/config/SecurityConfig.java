@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -24,16 +25,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for easier Postman testing
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/login",
                     "/css/**",
                     "/js/**",
-                    "/images/**",
-                    "/api/**" // Allow API access for Postman
+                    "/images/**"
                 ).permitAll()
+                .requestMatchers("/admin/**", "/api/**").hasRole("ADMIN")
+                .requestMatchers("/etudiant/**").hasRole("USER")
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler(accessDeniedHandler())
             )
             .formLogin(form -> form
                 .loginPage("/login")
@@ -47,6 +52,11 @@ public class SecurityConfig {
                 .permitAll()
             );
         return http.build();
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> response.sendRedirect("/login?denied");
     }
 
     @Bean

@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
@@ -33,28 +35,9 @@ public class AdminController {
     public String dashboard(@RequestParam(required = false) String search, 
                             @RequestParam(required = false) String specialite, 
                             Model model) {
-        List<Etudiant> all = etudiantService.findAll();
-        List<Etudiant> filtered = new ArrayList<>();
-        
-        for (Etudiant e : all) {
-            boolean matchSearch = true;
-            boolean matchSpec = true;
-            
-            if (search != null && !search.trim().isEmpty()) {
-                String s = search.toLowerCase();
-                matchSearch = (e.getMatricule() != null && e.getMatricule().toLowerCase().contains(s)) ||
-                              (e.getNumeroNational() != null && e.getNumeroNational().toLowerCase().contains(s)) ||
-                              (e.getNom() != null && e.getNom().toLowerCase().contains(s)) ||
-                              (e.getPrenom() != null && e.getPrenom().toLowerCase().contains(s));
-            }
-            if (specialite != null && !specialite.trim().isEmpty()) {
-                matchSpec = (e.getSpecialite() != null && e.getSpecialite().equalsIgnoreCase(specialite));
-            }
-            
-            if (matchSearch && matchSpec) {
-                filtered.add(e);
-            }
-        }
+        String normalizedSearch = search != null ? search.trim() : "";
+        String normalizedSpecialite = specialite != null ? specialite.trim() : "";
+        List<Etudiant> filtered = new ArrayList<>(etudiantService.findForAdminDashboard(normalizedSearch, normalizedSpecialite));
 
         // Grouping: Level -> Specialite -> List<Etudiant>
         java.util.Map<String, java.util.Map<String, List<Etudiant>>> grouped = new java.util.LinkedHashMap<>();
@@ -80,11 +63,24 @@ public class AdminController {
             specMap.get(spec).add(e);
         }
 
+        Set<String> specialites = new LinkedHashSet<>();
+        Set<String> niveaux = new LinkedHashSet<>();
+        for (Etudiant e : filtered) {
+            if (e.getSpecialite() != null && !e.getSpecialite().trim().isEmpty()) {
+                specialites.add(e.getSpecialite().trim());
+            }
+            if (e.getNiveau() != null && !e.getNiveau().trim().isEmpty()) {
+                niveaux.add(e.getNiveau().trim());
+            }
+        }
+
         model.addAttribute("groupedEtudiants", grouped);
         model.addAttribute("totalStudents", filtered.size());
+        model.addAttribute("totalSpecialites", specialites.size());
+        model.addAttribute("totalNiveaux", niveaux.size());
         model.addAttribute("newEtudiant", new Etudiant());
-        model.addAttribute("search", search);
-        model.addAttribute("specialite", specialite);
+        model.addAttribute("search", normalizedSearch);
+        model.addAttribute("specialite", normalizedSpecialite);
         return "admin_dashboard";
     }
 

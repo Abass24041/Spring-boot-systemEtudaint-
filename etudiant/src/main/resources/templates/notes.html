@@ -458,7 +458,7 @@
 
 <!-- CONTROLS -->
 <div class="controls">
-    <a th:href="@{/etudiant/dashboard/{id}(id=${etudiant.id})}" class="btn btn-back">← Retour au dashboard</a>
+    <a th:href="@{/etudiant/dashboard}" class="btn btn-back">← Retour au dashboard</a>
     <button onclick="window.print()" class="btn btn-print">🖨 Imprimer / Exporter PDF</button>
 </div>
 
@@ -479,7 +479,7 @@
             </div>
 
             <div class="header-center">
-                <img th:src="@{/images/logo.png}" alt="Logo SupNum">
+                <img th:src="@{/images/logo.svg}" alt="Logo SupNum">
                 <div class="header-seal">Portail Académique Officiel</div>
             </div>
 
@@ -501,6 +501,8 @@
             </div>
             <div class="doc-title-divider"></div>
         </div>
+
+        <div th:if="${errorMessage != null}" class="decision failed" style="margin-bottom:18px;" th:text="${errorMessage}"></div>
 
         <!-- STUDENT INFO -->
         <div class="student-card">

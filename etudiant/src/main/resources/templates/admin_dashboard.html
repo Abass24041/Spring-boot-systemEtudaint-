@@ -275,11 +275,11 @@
             </div>
             <div class="stat-card">
                 <div class="label">SPÉCIALITÉS</div>
-                <div class="value">3</div>
+                <div class="value" th:text="${totalSpecialites}">0</div>
             </div>
             <div class="stat-card">
                 <div class="label">NIVEAUX</div>
-                <div class="value">3</div>
+                <div class="value" th:text="${totalNiveaux}">0</div>
             </div>
             <div class="stat-card">
                 <div class="label">STATUT SYSTÈME</div>
@@ -290,7 +290,7 @@
         <div class="card" style="background: #eff6ff; border-color: #bfdbfe;">
             <h3>🔍 Recherche et Filtres</h3>
             <form th:action="@{/admin/dashboard}" method="get" style="display: flex; gap: 15px;">
-                <input type="text" name="search" th:value="${search}" placeholder="Nom, Email, NNI..." style="flex: 2;">
+                <input type="text" name="search" th:value="${search}" placeholder="Nom, Prénom, Email, Matricule, NNI..." style="flex: 2;">
                 <select name="specialite" style="flex: 1;">
                     <option value="">Toutes spécialités</option>
                     <option value="Réseaux, Systèmes et Sécurité" th:selected="${specialite == 'Réseaux, Systèmes et Sécurité'}">Réseaux</option>
@@ -362,10 +362,6 @@
             <div id="nav-info" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #64748b;">
                 <span id="current-path" style="font-weight: 600; color: #0f172a;">Tous les Niveaux</span>
                 <button id="btn-back" class="btn-icon" style="display: none; padding: 4px 12px; font-size: 12px; background: #f1f5f9;">⬅️ Retour</button>
-                
-                <!-- Debug Info -->
-                <span th:if="${groupedEtudiants == null}" style="color: red;">[DEBUG: Map NULL]</span>
-                <span th:if="${groupedEtudiants != null}" th:text="'[DEBUG: ' + ${groupedEtudiants.size()} + ' Levels Found]'" style="color: green; font-size: 10px;"></span>
             </div>
 
             <!-- VIEW 1: LEVELS -->
@@ -417,10 +413,15 @@
             btnBack.style.display = 'block';
             currentPath.innerText = 'Niveau ' + level;
 
-            const specs = groupedData[level];
+            const specs = groupedData[level] || {};
             viewSpecs.innerHTML = '';
+            const specNames = Object.keys(specs);
+            if (specNames.length === 0) {
+                viewSpecs.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">Aucune spécialité trouvée.</div>';
+                return;
+            }
             
-            Object.keys(specs).forEach(specName => {
+            specNames.forEach(specName => {
                 const card = document.createElement('div');
                 card.className = 'folder-card spec-folder';
                 card.onclick = () => showStudents(level, specName);
@@ -439,7 +440,11 @@
             viewStudents.style.display = 'block';
             currentPath.innerText = 'Niveau ' + level + ' > ' + spec;
 
-            const students = groupedData[level][spec];
+            const students = (groupedData[level] && groupedData[level][spec]) ? groupedData[level][spec] : [];
+            if (students.length === 0) {
+                viewStudents.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Aucun étudiant trouvé.</div>';
+                return;
+            }
             let tableHtml = `
                 <table>
                     <thead>

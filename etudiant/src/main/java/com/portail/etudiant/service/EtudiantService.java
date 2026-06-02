@@ -25,6 +25,12 @@ public class EtudiantService {
         return etudiantRepository.findFirstByEmail(email);
     }
 
+    public List<Etudiant> findForAdminDashboard(String search, String specialite) {
+        String normalizedSearch = search == null ? "" : search.trim();
+        String normalizedSpecialite = specialite == null ? "" : specialite.trim();
+        return etudiantRepository.findForAdminDashboard(normalizedSearch, normalizedSpecialite);
+    }
+
     public Etudiant save(Etudiant etudiant) {
         return etudiantRepository.save(etudiant);
     }

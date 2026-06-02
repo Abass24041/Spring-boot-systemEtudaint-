@@ -1,5 +1,6 @@
 package com.portail.etudiant.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
@@ -15,6 +16,7 @@ public class Etudiant {
     private String nom;
     private String prenom;
     private String email;
+    @JsonIgnore
     private String password;
     
     private String matricule;

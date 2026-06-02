@@ -410,7 +410,7 @@
         <div class="form-box">
 
             <div class="logo-wrap">
-                <img th:src="@{/images/logo.png}" alt="Logo SupNum">
+                <img th:src="@{/images/logo.svg}" alt="Logo SupNum">
             </div>
 
             <h2 class="form-heading">Connexion</h2>
@@ -418,6 +418,9 @@
 
             <div th:if="${param.error}" class="error-msg">
                 Email ou mot de passe incorrect.
+            </div>
+            <div th:if="${param.denied}" class="error-msg">
+                Accès refusé. Connectez-vous avec le bon compte.
             </div>
 
             <form th:action="@{/login}" method="post">

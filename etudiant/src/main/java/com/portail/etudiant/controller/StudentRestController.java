@@ -37,6 +37,25 @@ public class StudentRestController {
         return etudiantService.save(etudiant);
     }
 
+    // PUT complete update: http://localhost:8080/api/etudiants/{id}
+    @PutMapping("/{id}")
+    public ResponseEntity<Etudiant> updateStudent(@PathVariable Long id, @RequestBody Etudiant etudiantDetails) {
+        return etudiantService.findById(id).map(existing -> {
+            existing.setNom(etudiantDetails.getNom());
+            existing.setPrenom(etudiantDetails.getPrenom());
+            existing.setEmail(etudiantDetails.getEmail());
+            existing.setMatricule(etudiantDetails.getMatricule());
+            existing.setNumeroNational(etudiantDetails.getNumeroNational());
+            existing.setTelephone(etudiantDetails.getTelephone());
+            existing.setSpecialite(etudiantDetails.getSpecialite());
+            existing.setNiveau(etudiantDetails.getNiveau());
+            existing.setDateNaissance(etudiantDetails.getDateNaissance());
+            existing.setLieuNaissance(etudiantDetails.getLieuNaissance());
+            existing.setPays(etudiantDetails.getPays());
+            return ResponseEntity.ok(etudiantService.save(existing));
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     // PATCH partial update: http://localhost:8080/api/etudiants/{id}
     // Used to update only one or two fields without sending the whole object
     @PatchMapping("/{id}")

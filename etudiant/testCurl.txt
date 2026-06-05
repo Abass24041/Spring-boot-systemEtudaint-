@@ -1,0 +1,93 @@
+# Fichier de test de l'API REST avec cURL
+# L'API étant sécurisée (Spring Security), il faut d'abord s'authentifier en tant qu'ADMIN
+# et stocker la session dans un fichier 'cookies.txt'.
+
+# 1. Authentification en tant qu'administrateur
+curl -c cookies.txt -d "username=admin@supnum.mr&password=admin123" -X POST http://localhost:8080/login
+
+# ==========================================
+# TEST DES ETUDIANTS (/api/etudiants)
+# ==========================================
+
+# 2. Récupérer tous les étudiants
+curl -b cookies.txt -X GET http://localhost:8080/api/etudiants
+
+# 3. Ajouter un nouvel étudiant
+curl -b cookies.txt -X POST http://localhost:8080/api/etudiants \
+-H "Content-Type: application/json" \
+-d '{
+  "nom": "Sow",
+  "prenom": "Amadou",
+  "email": "amadou.sow@supnum.mr",
+  "matricule": "SN2026005",
+  "numeroNational": "1122334455",
+  "role": "USER"
+}'
+
+# 4. Récupérer l'étudiant créé (en supposant que son ID est 4)
+curl -b cookies.txt -X GET http://localhost:8080/api/etudiants/4
+
+# 5. Mettre à jour complètement un étudiant (PUT)
+curl -b cookies.txt -X PUT http://localhost:8080/api/etudiants/4 \
+-H "Content-Type: application/json" \
+-d '{
+  "nom": "Sow",
+  "prenom": "Amadou",
+  "email": "amadou.sow@supnum.mr",
+  "matricule": "SN2026005",
+  "numeroNational": "1122334455",
+  "specialite": "Génie Logiciel",
+  "niveau": "M1"
+}'
+
+# 6. Mettre à jour partiellement un étudiant (PATCH)
+curl -b cookies.txt -X PATCH http://localhost:8080/api/etudiants/4 \
+-H "Content-Type: application/json" \
+-d '{"niveau": "M2"}'
+
+# ==========================================
+# TEST DES NOTES (/api/notes)
+# ==========================================
+
+# 7. Ajouter une note pour l'étudiant 4
+curl -b cookies.txt -X POST http://localhost:8080/api/notes \
+-H "Content-Type: application/json" \
+-d '{
+  "code": "DEV101",
+  "module": "Développement Web",
+  "matiere": "Spring Boot",
+  "credit": 5,
+  "valeur": 16.5,
+  "noteDevoir": 14.0,
+  "semestre": "S1",
+  "etudiant": {"id": 4}
+}'
+
+# 8. Récupérer toutes les notes de l'étudiant 4
+curl -b cookies.txt -X GET http://localhost:8080/api/notes/etudiant/4
+
+# 9. Récupérer une note par son ID (en supposant ID = 1)
+curl -b cookies.txt -X GET http://localhost:8080/api/notes/1
+
+# 10. Mettre à jour une note (PUT)
+curl -b cookies.txt -X PUT http://localhost:8080/api/notes/1 \
+-H "Content-Type: application/json" \
+-d '{
+  "code": "DEV101",
+  "module": "Développement Web",
+  "matiere": "Spring Boot Avancé",
+  "credit": 6,
+  "valeur": 18.0,
+  "noteDevoir": 15.0,
+  "semestre": "S2"
+}'
+
+# 11. Supprimer la note
+curl -b cookies.txt -X DELETE http://localhost:8080/api/notes/1
+
+# ==========================================
+# NETTOYAGE
+# ==========================================
+
+# 12. Supprimer l'étudiant
+curl -b cookies.txt -X DELETE http://localhost:8080/api/etudiants/4

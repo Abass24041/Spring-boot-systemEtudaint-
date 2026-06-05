@@ -19,7 +19,8 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, Long> {
               LOWER(COALESCE(e.nom, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
               LOWER(COALESCE(e.prenom, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
               LOWER(COALESCE(e.matricule, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
-              LOWER(COALESCE(e.numeroNational, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+              LOWER(COALESCE(e.numeroNational, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
+              LOWER(COALESCE(e.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
           )
           AND (
               :specialite IS NULL OR :specialite = '' OR

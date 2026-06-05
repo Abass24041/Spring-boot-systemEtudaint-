@@ -289,8 +289,8 @@
 
         <div class="card" style="background: #eff6ff; border-color: #bfdbfe;">
             <h3>🔍 Recherche et Filtres</h3>
-            <form th:action="@{/admin/dashboard}" method="get" style="display: flex; gap: 15px;">
-                <input type="text" name="search" th:value="${search}" placeholder="Nom, Prénom, Email, Matricule, NNI..." style="flex: 2;">
+            <form th:action="@{/admin/dashboard}" method="get" style="display: flex; gap: 15px; align-items: center;">
+                <input type="text" name="search" th:value="${search}" placeholder="Nom, Prénom, Matricule, NNI..." style="flex: 2;">
                 <select name="specialite" style="flex: 1;">
                     <option value="">Toutes spécialités</option>
                     <option value="Réseaux, Systèmes et Sécurité" th:selected="${specialite == 'Réseaux, Systèmes et Sécurité'}">Réseaux</option>
@@ -298,6 +298,10 @@
                     <option value="Data Science" th:selected="${specialite == 'Data Science'}">Data Science</option>
                 </select>
                 <button type="submit" class="btn-primary" style="margin-top: 0;">Filtrer</button>
+                <a th:if="${search != null && search != '' || specialite != null && specialite != ''}" 
+                   th:href="@{/admin/dashboard}" 
+                   class="btn-primary" 
+                   style="margin-top: 0; background: #ef4444; text-decoration: none; text-align: center;">Réinitialiser</a>
             </form>
         </div>
 
@@ -358,34 +362,90 @@
         <div class="card">
             <h3>👥 Gestion des Étudiants</h3>
             
-            <!-- Breadcrumbs / Navigation Info -->
-            <div id="nav-info" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #64748b;">
-                <span id="current-path" style="font-weight: 600; color: #0f172a;">Tous les Niveaux</span>
-                <button id="btn-back" class="btn-icon" style="display: none; padding: 4px 12px; font-size: 12px; background: #f1f5f9;">⬅️ Retour</button>
-            </div>
-
-            <!-- VIEW 1: LEVELS -->
-            <div id="view-levels" class="folder-grid">
-                <div th:each="levelEntry : ${groupedEtudiants}" 
-                     class="folder-card level-folder" 
-                     th:attr="data-level=${levelEntry.key}">
-                    <div class="folder-icon">📂</div>
-                    <div class="folder-name" th:text="'Niveau ' + ${levelEntry.key}">L1</div>
-                    <div class="folder-count" th:text="${levelEntry.value.size()} + ' Spécialités'"></div>
+            <!-- ===== SEARCH RESULTS: Flat table shown when search/filter is active ===== -->
+            <div id="search-results" th:if="${search != null && search != '' || specialite != null && specialite != ''}">
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 600; color: #0f172a;">📋 Résultats de recherche</span>
+                    <span class="badge badge-blue" th:text="${totalStudents} + ' étudiant(s) trouvé(s)'"></span>
                 </div>
-                <div th:if="${#maps.isEmpty(groupedEtudiants)}" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">
-                    Aucune donnée disponible.
+                
+                <div th:if="${totalStudents == 0}" style="text-align: center; padding: 40px; color: #64748b;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🔍</div>
+                    <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">Aucun résultat</div>
+                    <div>Aucun étudiant ne correspond à votre recherche.</div>
                 </div>
+
+                <table th:if="${totalStudents > 0}">
+                    <thead>
+                        <tr>
+                            <th>Matricule</th>
+                            <th>NNI</th>
+                            <th>Étudiant</th>
+                            <th>Email</th>
+                            <th>Spécialité</th>
+                            <th>Niveau</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <th:block th:each="levelEntry : ${groupedEtudiants}">
+                            <th:block th:each="specEntry : ${levelEntry.value}">
+                                <tr th:each="etu : ${specEntry.value}">
+                                    <td style="font-weight: 700; color: #1e3a8a;" th:text="${etu.matricule}"></td>
+                                    <td style="font-size: 13px; color: #64748b;" th:text="${etu.numeroNational}"></td>
+                                    <td>
+                                        <div style="font-weight: 600;" th:text="${etu.nom} + ' ' + ${etu.prenom}"></div>
+                                    </td>
+                                    <td th:text="${etu.email}"></td>
+                                    <td><span class="badge badge-green" th:text="${etu.specialite}"></span></td>
+                                    <td><span class="badge badge-blue" th:text="${etu.niveau}"></span></td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <a th:href="@{/admin/etudiant/{id}(id=${etu.id})}" class="btn-icon">📝</a>
+                                            <a th:href="@{/admin/etudiant/edit/{id}(id=${etu.id})}" class="btn-icon">⚙️</a>
+                                            <form th:action="@{/admin/etudiant/delete/{id}(id=${etu.id})}" method="post" style="display:inline;">
+                                                <button type="submit" class="btn-icon" style="color: #ef4444;" onclick="return confirm('Supprimer cet étudiant ?');">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </th:block>
+                        </th:block>
+                    </tbody>
+                </table>
             </div>
 
-            <!-- VIEW 2: SPECIALITIES (Hidden by default) -->
-            <div id="view-specs" class="folder-grid" style="display: none;">
-                <!-- Dynamically populated by JS -->
-            </div>
+            <!-- ===== FOLDER VIEW: Shown when NO search/filter is active ===== -->
+            <div id="folder-view" th:if="${(search == null || search == '') && (specialite == null || specialite == '')}">
+                <!-- Breadcrumbs / Navigation Info -->
+                <div id="nav-info" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #64748b;">
+                    <span id="current-path" style="font-weight: 600; color: #0f172a;">Tous les Niveaux</span>
+                    <button id="btn-back" class="btn-icon" style="display: none; padding: 4px 12px; font-size: 12px; background: #f1f5f9;">⬅️ Retour</button>
+                </div>
 
-            <!-- VIEW 3: STUDENTS (Hidden by default) -->
-            <div id="view-students" style="display: none;">
-                <!-- Dynamically populated by JS -->
+                <!-- VIEW 1: LEVELS -->
+                <div id="view-levels" class="folder-grid">
+                    <div th:each="levelEntry : ${groupedEtudiants}" 
+                         class="folder-card level-folder" 
+                         th:attr="data-level=${levelEntry.key}">
+                        <div class="folder-icon">📂</div>
+                        <div class="folder-name" th:text="'Niveau ' + ${levelEntry.key}">L1</div>
+                        <div class="folder-count" th:text="${levelEntry.value.size()} + ' Spécialités'"></div>
+                    </div>
+                    <div th:if="${#maps.isEmpty(groupedEtudiants)}" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">
+                        Aucune donnée disponible.
+                    </div>
+                </div>
+
+                <!-- VIEW 2: SPECIALITIES (Hidden by default) -->
+                <div id="view-specs" class="folder-grid" style="display: none;">
+                    <!-- Dynamically populated by JS -->
+                </div>
+
+                <!-- VIEW 3: STUDENTS (Hidden by default) -->
+                <div id="view-students" style="display: none;">
+                    <!-- Dynamically populated by JS -->
+                </div>
             </div>
         </div>
     </main>
@@ -394,114 +454,122 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         const groupedData = /*[[${groupedEtudiants}]]*/ {};
+        const searchValue = /*[[${search}]]*/ '';
+        const specialiteValue = /*[[${specialite}]]*/ '';
         console.log("Grouped Data loaded:", groupedData);
         
-        let currentLevel = null;
-        let currentSpec = null;
+        // Only enable folder navigation when there is NO active search
+        if (!searchValue && !specialiteValue) {
+            let currentLevel = null;
+            let currentSpec = null;
 
-        const viewLevels = document.getElementById('view-levels');
-        const viewSpecs = document.getElementById('view-specs');
-        const viewStudents = document.getElementById('view-students');
-        const btnBack = document.getElementById('btn-back');
-        const currentPath = document.getElementById('current-path');
+            const viewLevels = document.getElementById('view-levels');
+            const viewSpecs = document.getElementById('view-specs');
+            const viewStudents = document.getElementById('view-students');
+            const btnBack = document.getElementById('btn-back');
+            const currentPath = document.getElementById('current-path');
 
-        function showSpecs(level) {
-            currentLevel = level;
-            viewLevels.style.display = 'none';
-            viewSpecs.style.display = 'grid';
-            viewStudents.style.display = 'none';
-            btnBack.style.display = 'block';
-            currentPath.innerText = 'Niveau ' + level;
+            if (viewLevels) {
+                function showSpecs(level) {
+                    currentLevel = level;
+                    viewLevels.style.display = 'none';
+                    viewSpecs.style.display = 'grid';
+                    viewStudents.style.display = 'none';
+                    btnBack.style.display = 'block';
+                    currentPath.innerText = 'Niveau ' + level;
 
-            const specs = groupedData[level] || {};
-            viewSpecs.innerHTML = '';
-            const specNames = Object.keys(specs);
-            if (specNames.length === 0) {
-                viewSpecs.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">Aucune spécialité trouvée.</div>';
-                return;
+                    const specs = groupedData[level] || {};
+                    viewSpecs.innerHTML = '';
+                    const specNames = Object.keys(specs);
+                    if (specNames.length === 0) {
+                        viewSpecs.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">Aucune spécialité trouvée.</div>';
+                        return;
+                    }
+                    
+                    specNames.forEach(specName => {
+                        const card = document.createElement('div');
+                        card.className = 'folder-card spec-folder';
+                        card.onclick = () => showStudents(level, specName);
+                        card.innerHTML = `
+                            <div class="folder-icon" style="filter: hue-rotate(180deg);">📂</div>
+                            <div class="folder-name">${specName}</div>
+                            <div class="folder-count">${specs[specName].length} Étudiants</div>
+                        `;
+                        viewSpecs.appendChild(card);
+                    });
+                }
+
+                function showStudents(level, spec) {
+                    currentSpec = spec;
+                    viewSpecs.style.display = 'none';
+                    viewStudents.style.display = 'block';
+                    currentPath.innerText = 'Niveau ' + level + ' > ' + spec;
+
+                    const students = (groupedData[level] && groupedData[level][spec]) ? groupedData[level][spec] : [];
+                    if (students.length === 0) {
+                        viewStudents.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Aucun étudiant trouvé.</div>';
+                        return;
+                    }
+                    let tableHtml = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Matricule</th>
+                                    <th>NNI</th>
+                                    <th>Étudiant</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    students.forEach(etu => {
+                        tableHtml += `
+                            <tr>
+                                <td style="font-weight: 700; color: #1e3a8a;">${etu.matricule || ''}</td>
+                                <td style="font-size: 13px; color: #64748b;">${etu.numeroNational || ''}</td>
+                                <td>
+                                    <div style="font-weight: 600;">${etu.nom} ${etu.prenom}</div>
+                                </td>
+                                <td>${etu.email}</td>
+                                <td style="width: 150px;">
+                                    <div class="action-btns">
+                                        <a href="/admin/etudiant/${etu.id}" class="btn-icon">📝</a>
+                                        <a href="/admin/etudiant/edit/${etu.id}" class="btn-icon">⚙️</a>
+                                        <form action="/admin/etudiant/delete/${etu.id}" method="post" style="display:inline;">
+                                            <button type="submit" class="btn-icon" style="color: #ef4444;" onclick="return confirm('Supprimer cet étudiant ?');">🗑️</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHtml += `</tbody></table>`;
+                    viewStudents.innerHTML = tableHtml;
+                }
+
+                // Attach listeners to level folders
+                document.querySelectorAll('.level-folder').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const lv = el.getAttribute('data-level');
+                        showSpecs(lv);
+                    });
+                });
+
+                btnBack.onclick = () => {
+                    if (viewStudents.style.display === 'block') {
+                        showSpecs(currentLevel);
+                    } else {
+                        viewLevels.style.display = 'grid';
+                        viewSpecs.style.display = 'none';
+                        btnBack.style.display = 'none';
+                        currentPath.innerText = 'Tous les Niveaux';
+                    }
+                };
             }
-            
-            specNames.forEach(specName => {
-                const card = document.createElement('div');
-                card.className = 'folder-card spec-folder';
-                card.onclick = () => showStudents(level, specName);
-                card.innerHTML = `
-                    <div class="folder-icon" style="filter: hue-rotate(180deg);">📂</div>
-                    <div class="folder-name">${specName}</div>
-                    <div class="folder-count">${specs[specName].length} Étudiants</div>
-                `;
-                viewSpecs.appendChild(card);
-            });
         }
-
-        function showStudents(level, spec) {
-            currentSpec = spec;
-            viewSpecs.style.display = 'none';
-            viewStudents.style.display = 'block';
-            currentPath.innerText = 'Niveau ' + level + ' > ' + spec;
-
-            const students = (groupedData[level] && groupedData[level][spec]) ? groupedData[level][spec] : [];
-            if (students.length === 0) {
-                viewStudents.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Aucun étudiant trouvé.</div>';
-                return;
-            }
-            let tableHtml = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID Supnum</th>
-                            <th>Étudiant</th>
-                            <th>Email</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            students.forEach(etu => {
-                tableHtml += `
-                    <tr>
-                        <td style="font-weight: 700; color: #1e3a8a; width: 150px;">${etu.matricule || ''}</td>
-                        <td>
-                            <div style="font-weight: 600;">${etu.nom} ${etu.prenom}</div>
-                            <div style="font-size: 12px; color: #64748b;">${etu.numeroNational || ''}</div>
-                        </td>
-                        <td>${etu.email}</td>
-                        <td style="width: 150px;">
-                            <div class="action-btns">
-                                <a href="/admin/etudiant/${etu.id}" class="btn-icon">📝</a>
-                                <a href="/admin/etudiant/edit/${etu.id}" class="btn-icon">⚙️</a>
-                                <form action="/admin/etudiant/delete/${etu.id}" method="post" style="display:inline;">
-                                    <button type="submit" class="btn-icon" style="color: #ef4444;" onclick="return confirm('Supprimer cet étudiant ?');">🗑️</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tableHtml += `</tbody></table>`;
-            viewStudents.innerHTML = tableHtml;
-        }
-
-        // Attach listeners to level folders
-        document.querySelectorAll('.level-folder').forEach(el => {
-            el.addEventListener('click', () => {
-                const lv = el.getAttribute('data-level');
-                showSpecs(lv);
-            });
-        });
-
-        btnBack.onclick = () => {
-            if (viewStudents.style.display === 'block') {
-                showSpecs(currentLevel);
-            } else {
-                viewLevels.style.display = 'grid';
-                viewSpecs.style.display = 'none';
-                btnBack.style.display = 'none';
-                currentPath.innerText = 'Tous les Niveaux';
-            }
-        };
         /*]]>*/
     </script>
 

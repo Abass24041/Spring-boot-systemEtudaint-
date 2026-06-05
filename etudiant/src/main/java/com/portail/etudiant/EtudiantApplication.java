@@ -41,7 +41,7 @@ public class EtudiantApplication {
 				demo.setNumeroNational("1234567890");
 				demo.setPassword(passwordEncoder.encode("1234567890"));
 				demo.setRole("USER");
-				demo.setSpecialite("Développement Web");
+				demo.setSpecialite("Développement Web et Mobile");
 				demo.setNiveau("L3");
 				etudiantRepository.save(demo);
 			}
